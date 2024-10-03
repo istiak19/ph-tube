@@ -6,10 +6,39 @@ const loadCatagories = async () => {
     displayCatagories(data.categories)
 }
 
-const loadCatagoriesVideos = async (id) => {
-    const res = await fetch(`https://openapi.programming-hero.com/api/phero-tube/category/${id}`)
-    const data = await res.json()
-    displayVideos(data.category)
+const displayRemoveColor=()=>{
+    const removeColors=document.getElementsByClassName('btn-category')
+    for(let removeColor of removeColors){
+        removeColor.classList.remove('active')
+    }
+}
+
+const loadCatagoriesVideos =(id) => {
+    fetch(`https://openapi.programming-hero.com/api/phero-tube/category/${id}`)
+    .then(res=>res.json())
+    .then(data=>{
+        displayRemoveColor()
+        const btnActive=document.getElementById(`btn-${id}`)
+        console.log(btnActive)
+        btnActive.classList.add("active")
+        displayVideos(data.category)
+    })
+}
+
+const videoDetails=(videoId)=>{
+    fetch(`https://openapi.programming-hero.com/api/phero-tube/video/${videoId}`)
+    .then(res=>res.json())
+    .then(data=>displayDetails(data.video))
+}
+
+const displayDetails=(video)=>{
+    const modalContainer=document.getElementById('modal-container')
+    modalContainer.innerHTML=`
+     <img class='w-full h-full' src="${video.thumbnail}" alt="">
+     <p class='text-xs text-black font-medium'>${video.description}</p>
+    `
+
+    document.getElementById('my_modal_1').showModal()
 }
 
 // Create a display
@@ -19,16 +48,16 @@ const displayCatagories = (categories) => {
         // Create a button
         const buttonContainer = document.createElement('div')
         buttonContainer.innerHTML = `
-        <button onclick="loadCatagoriesVideos(${item.category_id})" class='btn'>${item.category}</button>
+        <button id="btn-${item.category_id}" onclick="loadCatagoriesVideos(${item.category_id})" class='btn btn-category'>${item.category}</button>
         `
         categoriesButton.appendChild(buttonContainer)
     })
 }
 
 // Create load a videos
-const loadVideos = async () => {
+const loadVideos = async (search='') => {
     try {
-        const res = await fetch('https://openapi.programming-hero.com/api/phero-tube/videos')
+        const res = await fetch(`https://openapi.programming-hero.com/api/phero-tube/videos?title=${search}`)
         const data = await res.json()
         displayVideos(data.videos)
     }
@@ -88,11 +117,15 @@ const displayVideos = (videos) => {
                 <p class="text-gray-500 text-xs">${video.others.views} views</p>
                 </div >
             </div >
+            <p><button onclick="videoDetails('${video.video_id}')" class='btn btn-error text-xs btn-sm text-gray-50'>Details</button></p>
     `
         videosContainer.append(card)
     })
 }
 
+document.getElementById('search').addEventListener('keyup',(event)=>{
+    loadVideos(event.target.value)
+})
 // Function loading
 loadCatagories();
 loadVideos();
