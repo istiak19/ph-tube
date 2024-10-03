@@ -6,15 +6,22 @@ const loadCatagories = async () => {
     displayCatagories(data.categories)
 }
 
+const loadCatagoriesVideos = async (id) => {
+    const res = await fetch(`https://openapi.programming-hero.com/api/phero-tube/category/${id}`)
+    const data = await res.json()
+    displayVideos(data.category)
+}
+
 // Create a display
 const displayCatagories = (categories) => {
     const categoriesButton = document.getElementById('categories-button')
     categories.map((item) => {
         // Create a button
-        const button = document.createElement('button')
-        button.classList = 'btn'
-        button.innerText = item.category
-        categoriesButton.appendChild(button)
+        const buttonContainer = document.createElement('div')
+        buttonContainer.innerHTML = `
+        <button onclick="loadCatagoriesVideos(${item.category_id})" class='btn'>${item.category}</button>
+        `
+        categoriesButton.appendChild(buttonContainer)
     })
 }
 
@@ -30,36 +37,43 @@ const loadVideos = async () => {
     }
 }
 
+// Create function in time manage
+function getTime(time) {
+    // const day=parseInt(time/86400)
+    const hour = parseInt(time / 3600)
+    const second = time % 3600
+    const min = parseInt(second / 60)
+    const remainingSecond = min % 60
+    return `${hour} hour ${min} mint ${remainingSecond} second`
+}
+
 // Create a display videos
 
 const displayVideos = (videos) => {
     const videosContainer = document.getElementById('videos')
+    videosContainer.innerHTML = ''
+    if (videos.length === 0) {
+        videosContainer.classList.remove('grid')
+        videosContainer.innerHTML = `
+         <div class="flex flex-col items-center justify-center">
+        <div>
+            <img src="./Icon.png" alt="">
+        </div>
+        <h3 class="font-bold text-3xl">Oops!! Sorry, There is no content here</h3>
+    </div>
+        `
+    }
+    else{
+        videosContainer.classList.add('grid')
+    }
     videos.map((video) => {
         const card = document.createElement('div')
         card.classList = ('card card-compact')
-        // const card={
-        //     "category_id": "1001",
-        //     "video_id": "aaaa",
-        //     "thumbnail": "https://i.ibb.co/L1b6xSq/shape.jpg",
-        //     "title": "Shape of You",
-        //     "authors": [
-        //         {
-        //             "profile_picture": "https://i.ibb.co/D9wWRM6/olivia.jpg",
-        //             "profile_name": "Olivia Mitchell",
-        //             "verified": ""
-        //         }
-        //     ],
-        //     "others": {
-        //         "views": "100K",
-        //         "posted_date": "16278"
-        //     },
-        //     "description": "Dive into the rhythm of 'Shape of You,' a captivating track that blends pop sensibilities with vibrant beats. Created by Olivia Mitchell, this song has already gained 100K views since its release. With its infectious melody and heartfelt lyrics, 'Shape of You' is perfect for fans looking for an uplifting musical experience. Let the music take over as Olivia's vocal prowess and unique style create a memorable listening journey."
-        // }
         card.innerHTML = `
          <figure class="h-[200px] relative">
                 <img class='rounded-md h-full w-full object-cover' src=${video.thumbnail}
                     alt="Shoes" />
-                <span class="absolute right-2 bottom-2 bg-black rounded-lg text-white p-2">${video.others['posted_date']}</span>
+                ${video.others.posted_date?.length === 0 ? '' : `<span class="absolute right-2 bottom-2 bg-black rounded-lg text-white p-2 text-xs">${getTime(video.others['posted_date'])}</span>`}
             </figure>
             <div class="py-2 flex gap-2">
                 <div class="w-10 h-10">
